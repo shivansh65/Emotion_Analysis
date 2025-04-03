@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}Emotion Detection from Keystrokes{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg">
+                <div class="card-header text-center py-4">
+                    <h1 class="display-5">Emotion Detection from Keystrokes</h1>
+                    <p class="lead">Type in the text area below to detect your emotion.</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label for="timeLimit" class="form-label">Set Time Limit (seconds)</label>
+                        <input type="number" id="timeLimit" class="form-control" placeholder="Enter time in seconds" min="1">
+                    </div>
+                    <div id="timer" class="text-center mb-3" style="font-size: 1.5rem; color: #333; display: none;"></div>
+                    <div class="d-grid mb-3">
+                        <button id="startTimerBtn" class="btn btn-outline-dark btn-lg">Start Timer</button>
+                    </div>
+                    <div class="d-grid mb-3">
+                        <button id="resetTimerBtn" class="btn btn-outline-secondary btn-lg">Reset Timer</button>
+                    </div>
+                    <textarea id="typingArea" class="form-control" rows="10" placeholder="Start typing..."></textarea>
+                    <div class="d-grid mt-4">
+                        <button id="detectEmotionBtn" class="btn btn-dark btn-lg">Detect Emotion</button>
+                    </div>
+                    <div id="emotionResult" class="result text-center mt-4 p-3" style="display: none;">
+                        <h3 class="mb-3">Detected Emotion</h3>
+                        <p id="emotionText" class="display-6 text-dark fw-bold"></p>
+                        <p id="emotionDetails" class="text-dark"></p>
+                        <div id="confidenceScore" class="mt-2"></div>
+                        <div id="motivationalMessage" class="motivational-message"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+<script>
+    let startTime;
+    let keyPressDurations = [];
+    let timeBetweenKeys = [];
+    let lastKeyPressTime;
+    let backspaceCount = 0;
+    let errorCount = 0;
+    let specialKeysCount = 0;
+    let typingInterval;
+    let timerInterval;
+    let keystrokes = [];
+    let pauseCount = 0;
+    let longestPause = 0;
+
+    document.getElementById('startTimerBtn').addEventListener('click', function() {
+        resetAnalysis();
+        const timeLimit = document.getElementById('timeLimit').value || 10;
+        document.getElementById('timer').style.display = 'block';
+        startTimer(timeLimit);
+        typingInterval = setTimeout(() => {
+            document.getElementById('detectEmotionBtn').click();
+        }, timeLimit * 1000);
+    });
+
+    document.getElementById('resetTimerBtn').addEventListener('click', resetAnalysis);
+
+    document.getElementById('typingArea').addEventListener('keydown', function(event) {
+        const currentTime = new Date().getTime();
+        if (!startTime) {
+            startTime = currentTime;
+        }
+        
+        if (lastKeyPressTime) {
+            const flightTime = currentTime - lastKeyPressTime;
+            timeBetweenKeys.push(flightTime);
+            if (flightTime > 1000) { // Pause longer than 1 second
+                pauseCount++;
+                longestPause = Math.max(longestPause, flightTime);
+            }
+        }
+        lastKeyPressTime = currentTime;
+
+        if (event.key === 'Backspace') {
+            backspaceCount++;
+        } else if (event.key.length > 1 && !['Shift', 'Control', 'Alt'].includes(event.key)) {
+            specialKeysCount++;
+        }
+
+        keystrokes.push({
+            key: event.key,
+            timestamp: currentTime,
+            dwell_time: null,
+            flight_time: timeBetweenKeys.length > 0 ? timeBetweenKeys[timeBetweenKeys.length - 1] : null
+        });
+    });
+
+    document.getElementById('typingArea').addEventListener('keyup', function(event) {
+        const currentTime = new Date().getTime();
+        const dwellTime = currentTime - lastKeyPressTime;
+        keyPressDurations.push(dwellTime);
+        keystrokes[keystrokes.length - 1].dwell_time = dwellTime;
+    });
+
+    document.getElementById('detectEmotionBtn').addEventListener('click', function() {
+        clearTimeout(typingInterval);
+        clearInterval(timerInterval);
+        document.getElementById('timer').style.display = 'none';
+        
+        const analysis = analyzeKeystrokes();
+        const emotionData = detectEmotion(analysis);
+        
+        document.getElementById('emotionText').innerText = emotionData.emotion;
+        document.getElementById('emotionText').className = `display-6 text-dark fw-bold emotion-${emotionData.emotion.toLowerCase()}`;
+        document.getElementById('emotionDetails').innerText = emotionData.details;
+        document.getElementById('confidenceScore').innerText = 
+            `Confidence Score: ${(emotionData.confidence * 100).toFixed(1)}%`;
+        document.getElementById('emotionResult').style.display = 'block';
+
+        // Display motivational message if the user is detected to be angry, stressed, anxious, or sad
+        const motivationalMessages = {
+            angry: "Take a deep breath. Everything will be okay.",
+            stressed: "Remember to take breaks and relax. You've got this!",
+            anxious: "Stay positive and keep moving forward. You're doing great!",
+            sad: "It's okay to feel sad sometimes. Things will get better."
+        };
+        if (["Angry", "Stressed", "Anxious", "Sad"].includes(emotionData.emotion)) {
+            document.getElementById('motivationalMessage').innerText = motivationalMessages[emotionData.emotion.toLowerCase()];
+        } else {
+            document.getElementById('motivationalMessage').innerText = "";
+        }
+    });
+
+    function analyzeKeystrokes() {
+        const text = document.getElementById('typingArea').value;
+        const totalTime = (new Date().getTime() - startTime) / 1000;
+        
+        const typingSpeed = text.length / totalTime;
+        const avgDwellTime = keyPressDurations.reduce((a, b) => a + b, 0) / keyPressDurations.length || 0;
+        const avgFlightTime = timeBetweenKeys.reduce((a, b) => a + b, 0) / timeBetweenKeys.length || 0;
+        const dwellVariance = calculateVariance(keyPressDurations, avgDwellTime);
+        const flightVariance = calculateVariance(timeBetweenKeys, avgFlightTime);
+        
+        return {
+            typingSpeed,
+            avgDwellTime,
+            avgFlightTime,
+            backspaceRate: backspaceCount / (text.length || 1),
+            specialKeysRate: specialKeysCount / (text.length || 1),
+            pauseCount,
+            longestPause,
+            dwellVariance,
+            flightVariance,
+            textLength: text.length,
+            wordCount: text.split(/\s+/).length
+        };
+    }
+
+    function calculateVariance(array, mean) {
+        return array.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / (array.length || 1);
+    }
+
+    function detectEmotion(analysis) {
+        let emotionScores = {
+            happy: 0,
+            stressed: 0,
+            sad: 0,
+            angry: 0,
+            focused: 0
+        };
+        let details = [];
+
+        // Typing Speed Analysis
+        if (analysis.typingSpeed > 5) {
+            emotionScores.happy += 0.3;
+            emotionScores.focused += 0.2;
+            details.push("Fast typing speed suggests high energy or focus");
+        } else if (analysis.typingSpeed < 2) {
+            emotionScores.sad += 0.3;
+            details.push("Slow typing speed may indicate low energy or sadness");
+        }
+
+        // Dwell Time Analysis
+        if (analysis.avgDwellTime > 150) {
+            emotionScores.stressed += 0.2;
+            emotionScores.angry += 0.2;
+            details.push("Long key press durations might indicate tension");
+        } else if (analysis.avgDwellTime < 80) {
+            emotionScores.happy += 0.2;
+            details.push("Short key presses suggest a relaxed state");
+        }
+
+        // Flight Time Analysis
+        if (analysis.avgFlightTime > 500) {
+            emotionScores.sad += 0.2;
+            details.push("Long pauses between keys may indicate hesitation");
+        }
+
+        // Variance Analysis
+        if (analysis.dwellVariance > 10000) {
+            emotionScores.stressed += 0.3;
+            details.push("Inconsistent key press durations suggest stress");
+        }
+        if (analysis.flightVariance > 20000) {
+            emotionScores.stressed += 0.2;
+            emotionScores.angry += 0.2;
+            details.push("Irregular typing rhythm indicates agitation");
+        }
+
+        // Backspace Analysis
+        if (analysis.backspaceRate > 0.1) {
+            emotionScores.stressed += 0.3;
+            emotionScores.angry += 0.2;
+            details.push("High backspace rate suggests frustration or anxiety");
+        }
+
+        // Pause Analysis
+        if (analysis.pauseCount > 3 || analysis.longestPause > 3000) {
+            emotionScores.sad += 0.3;
+            details.push("Frequent or long pauses might indicate sadness or distraction");
+        }
+
+        // Determine primary emotion
+        const maxScore = Math.max(...Object.values(emotionScores));
+        const detectedEmotion = Object.keys(emotionScores)
+            .find(key => emotionScores[key] === maxScore);
+
+        return {
+            emotion: detectedEmotion.charAt(0).toUpperCase() + detectedEmotion.slice(1),
+            details: details.join('\n') + `\n\nMetrics:\n` +
+                `Typing Speed: ${analysis.typingSpeed.toFixed(2)} chars/sec\n` +
+                `Avg Dwell Time: ${analysis.avgDwellTime.toFixed(0)} ms\n` +
+                `Avg Flight Time: ${analysis.avgFlightTime.toFixed(0)} ms\n` +
+                `Backspace Rate: ${(analysis.backspaceRate * 100).toFixed(1)}%\n` +
+                `Pause Count: ${analysis.pauseCount}`,
+            confidence: maxScore / 1.5 // Normalized confidence (max possible score ~1.5)
+        };
+    }
+
+    function startTimer(duration) {
+        let timer = duration;
+        timerInterval = setInterval(() => {
+            const minutes = parseInt(timer / 60, 10);
+            const seconds = parseInt(timer % 60, 10);
+            document.getElementById('timer').textContent = 
+                `${minutes < 10 ? "0" + minutes : minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+            if (--timer < 0) clearInterval(timerInterval);
+        }, 1000);
+    }
+
+    function resetAnalysis() {
+        clearTimeout(typingInterval);
+        clearInterval(timerInterval);
+        document.getElementById('timer').style.display = 'none';
+        document.getElementById('timer').textContent = '';
+        document.getElementById('typingArea').value = '';
+        document.getElementById('emotionResult').style.display = 'none';
+        startTime = null;
+        keyPressDurations = [];
+        timeBetweenKeys = [];
+        lastKeyPressTime = null;
+        backspaceCount = 0;
+        errorCount = 0;
+        specialKeysCount = 0;
+        keystrokes = [];
+        pauseCount = 0;
+        longestPause = 0;
+    }
+</script>
+{% endblock %}

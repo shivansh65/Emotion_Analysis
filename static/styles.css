@@ -1,0 +1,109 @@
+/* Custom styles for the Emotion Detection Platform */
+body {
+    font-family: 'Roboto', sans-serif;
+    color: #212529;
+    line-height: 1.6;
+    background: url("{{ url_for('static', filename='emotion_ai_background.jpg') }}") no-repeat center center fixed;
+    background-size: cover;
+}
+
+.container {
+    max-width: 960px;
+    margin-top: 60px;
+    margin-bottom: 60px;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.95); /* Slightly opaque for readability over background */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #0288d1, #0277bd);
+    color: #ffffff;
+    padding: 2rem;
+    border-bottom: none;
+}
+
+.card-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.card-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.card-header .lead {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: #e1f5fe;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.btn-primary {
+    background-color: #0288d1;
+    border-color: #0288d1;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0277bd;
+    border-color: #0277bd;
+}
+
+.btn-outline-primary {
+    color: #0288d1;
+    border-color: #0288d1;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background-color: #e1f5fe;
+    color: #0277bd;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #37474f;
+    margin-bottom: 0.5rem;
+}
+
+.form-select, .form-control {
+    border-radius: 8px;
+    border: 1px solid #cfd8dc;
+    padding: 0.75rem;
+}
+
+.form-control:focus {
+    border-color: #0288d1;
+    box-shadow: 0 0 0 0.2rem rgba(2, 136, 209, 0.25);
+}
+
+.text-muted {
+    color: #78909c !important;
+}
+
+.border-bottom {
+    border-color: #eceff1 !important;
+}

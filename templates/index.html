@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection from Audio</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            background: url("{{ url_for('static', filename='ai_emotion_background.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+        }
+        .card {
+            border: none;
+            border-radius: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+        }
+        .form-label, .lead, .display-5, .display-6 {
+            color: #fff;
+        }
+        /* Remove the AI image */
+        /* .ai-image {
+            width: 100%;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+        } */
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg">
+                    <div class="card-header text-center py-4">
+                        <h1 class="display-5">Emotion Detection</h1>
+                        <p class="lead">Upload an audio file to detect the emotion.</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Remove the AI image -->
+                        <!-- <img src="{{ url_for('static', filename='ai_audio_emotion.jpg') }}" alt="Audio Emotion Detection" class="ai-image"> -->
+                        <form action="/" method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="audioFile" class="form-label">Choose a .wav file</label>
+                                <input type="file" class="form-control" id="audioFile" name="file" accept=".wav" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-dark btn-lg">Detect Emotion</button>
+                            </div>
+                        </form>
+                        <div class="text-center mt-4">
+                            <a href="/audio" class="btn btn-dark btn-lg mb-3">Detect Emotion from Audio</a>
+                            <a href="/keystroke" class="btn btn-secondary btn-lg mb-3">Detect Emotion from Keystrokes</a>
+                        </div>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                <div class="mt-4">
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                            {{ message }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                        {% if emotion %}
+                        <div class="result text-center mt-4 p-3">
+                            <h3 class="mb-3">Result</h3>
+                            <p class="display-6 text-dark fw-bold">{{ emotion }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

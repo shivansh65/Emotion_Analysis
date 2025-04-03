@@ -1,0 +1,9 @@
+Flask==2.1.1
+Flask-SQLAlchemy==2.5.1
+numpy==1.21.2
+librosa==0.8.1
+torch==1.9.0
+scikit-learn==0.24.2
+matplotlib==3.4.3
+seaborn==0.11.2
+pydub==0.25.1

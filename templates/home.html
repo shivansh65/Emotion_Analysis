@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection Platform</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            background: url("{{ url_for('static', filename='emotion_ai_background.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            color: #212529;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95); /* Slightly opaque white for readability */
+        }
+        .card-header {
+            background: linear-gradient(135deg, #0288d1, #0277bd);
+            color: #ffffff;
+        }
+        .star {
+            font-size: 2rem;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
+        }
+        .star.gold {
+            color: gold;
+        }
+        .star:hover,
+        .star:hover ~ .star {
+            transform: scale(1.2);
+        }
+        .star-container {
+            display: flex;
+            justify-content: center;
+        }
+        .hero-section {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 100px 0;
+            text-align: center;
+            color: #ffffff;
+        }
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+        .hero-section p {
+            font-size: 1.25rem;
+            font-weight: 400;
+        }
+        .detection-section {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 50px;
+        }
+        .detection-card {
+            width: 45%;
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
+        }
+        .detection-card:hover {
+            transform: translateY(-10px);
+            background-color: #f8f9fa;
+        }
+        .detection-card h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        .detection-card p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        .detection-card a {
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border-radius: 10px;
+            transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+        }
+        .detection-card a:hover {
+            background-color: #0277bd;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <div class="container">
+            <h1>Welcome to the Emotion Detection Platform</h1>
+            <p>Analyze emotions using advanced AI technology</p>
+            <div class="d-grid gap-3 mt-4">
+                <a href="#main-section" class="btn btn-primary btn-lg">Get Started</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-section" class="container mt-5 mb-5">
+        <!-- Main Detection Section -->
+        <div class="detection-section">
+            <div class="detection-card bg-light">
+                <h2>Detect via Audio Analysis</h2>
+                <p>Upload an audio file or record audio to detect the emotion.</p>
+                <a href="/audio" class="btn btn-dark btn-lg">Start Audio Analysis</a>
+            </div>
+            <div class="detection-card bg-light">
+                <h2>Detect via Keystroke Patterns</h2>
+                <p>Analyze your keystroke patterns to detect the emotion.</p>
+                <a href="/keystroke" class="btn btn-outline-dark btn-lg">Start Keystroke Analysis</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg">
+                    <div class="card-header text-center py-4">
+                        <h2 class="display-6">User Reviews</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="overallRating" class="text-center mb-4">
+                            <h3>Overall Rating</h3>
+                            <div class="star-container">
+                                <span class="star" data-value="1">☆</span>
+                                <span class="star" data-value="2">☆</span>
+                                <span class="star" data-value="3">☆</span>
+                                <span class="star" data-value="4">☆</span>
+                                <span class="star" data-value="5">☆</span>
+                            </div>
+                            <p id="averageRating" class="mt-2"></p>
+                        </div>
+                        <form id="reviewForm" action="/submit_review" method="post">
+                            <div class="mb-3">
+                                <label for="reviewerName" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="reviewerName" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reviewText" class="form-label">Your Review</label>
+                                <textarea class="form-control" id="reviewText" name="review" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Rating</label>
+                                <div class="star-container">
+                                    <span class="star" data-value="1">☆</span>
+                                    <span class="star" data-value="2">☆</span>
+                                    <span class="star" data-value="3">☆</span>
+                                    <span class="star" data-value="4">☆</span>
+                                    <span class="star" data-value="5">☆</span>
+                                </div>
+                                <input type="hidden" name="rating" id="ratingInput" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">Submit Review</button>
+                            </div>
+                        </form>
+                        <hr class="my-4">
+                        <div id="reviewsList">
+                            <!-- Reviews will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remove the Reviews Section -->
+    <!--
+    <div class="container mt-5">
+        <form method="POST" action="/">
+            <div class="form-group">
+                <label for="review">Leave a Review:</label>
+                <textarea class="form-control" id="review" name="review" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+        <h3>Reviews:</h3>
+        <ul class="list-group">
+            {% for review in reviews %}
+                <li class="list-group-item">
+                    <p>{{ review.content }}</p>
+                    <small class="text-muted">{{ review.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    -->
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <script>
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = this.getAttribute('data-value');
+                document.getElementById('ratingInput').value = rating;
+                document.querySelectorAll('.star').forEach(s => {
+                    s.classList.remove('gold');
+                    if (s.getAttribute('data-value') <= rating) {
+                        s.classList.add('gold');
+                    }
+                });
+            });
+        });
+
+        document.getElementById('reviewForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('reviewerName').value;
+            const review = document.getElementById('reviewText').value;
+            const rating = document.getElementById('ratingInput').value;
+
+            const reviewItem = document.createElement('div');
+            reviewItem.classList.add('review-item', 'mt-4');
+            reviewItem.innerHTML = `
+                <h5>${name}</h5>
+                <p>${review}</p>
+                <div class="rating">
+                    ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}
+                </div>
+            `;
+            document.getElementById('reviewsList').appendChild(reviewItem);
+
+            // Save the review to localStorage
+            const reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+            reviews.push({ name, review, rating: parseInt(rating) });
+            localStorage.setItem('reviews', JSON.stringify(reviews));
+
+            // Clear the form
+            document.getElementById('reviewForm').reset();
+            document.querySelectorAll('.star').forEach(s => s.classList.remove('gold'));
+
+            // Display the reviews and update the overall rating
+            displayReviews();
+            updateOverallRating();
+        });
+
+        function displayReviews() {
+            const reviewsList = document.getElementById('reviewsList');
+            reviewsList.innerHTML = '';
+            const reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+            reviews.sort((a, b) => b.rating - a.rating); // Sort reviews by rating
+            reviews.slice(0, 3).forEach(review => {
+                const reviewItem = document.createElement('div');
+                reviewItem.classList.add('review-item', 'mt-4');
+                reviewItem.innerHTML = `
+                    <h5>${review.name}</h5>
+                    <p>${review.review}</p>
+                    <div class="rating">
+                        ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                    </div>
+                `;
+                reviewsList.appendChild(reviewItem);
+            });
+        }
+
+        function updateOverallRating() {
+            const reviews = JSON.parse(localStorage.getItem('reviews')) || [];
+            if (reviews.length === 0) {
+                document.getElementById('averageRating').innerText = 'No reviews yet';
+                return;
+            }
+            const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+            const averageRating = (totalRating / reviews.length).toFixed(1);
+            document.getElementById('averageRating').innerText = `Average Rating: ${averageRating} / 5`;
+            document.querySelectorAll('#overallRating .star').forEach(star => {
+                star.classList.remove('gold');
+                if (star.getAttribute('data-value') <= Math.round(averageRating)) {
+                    star.classList.add('gold');
+                }
+            });
+        }
+
+        // Display reviews and update overall rating on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            displayReviews();
+            updateOverallRating();
+        });
+    </script>
+</body>
+</html>
